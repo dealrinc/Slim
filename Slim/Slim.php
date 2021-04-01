@@ -97,10 +97,10 @@ class Slim
     );
 
     /********************************************************************************
-    * PSR-0 Autoloader
-    *
-    * Do not use if you are using Composer to autoload dependencies.
-    *******************************************************************************/
+     * PSR-0 Autoloader
+     *
+     * Do not use if you are using Composer to autoload dependencies.
+     *******************************************************************************/
 
     /**
      * Slim PSR-0 autoloader
@@ -139,8 +139,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Instantiation and Configuration
-    *******************************************************************************/
+     * Instantiation and Configuration
+     *******************************************************************************/
 
     /**
      * Constructor
@@ -282,6 +282,9 @@ class Slim
      */
     public static function getDefaultSettings()
     {
+        if (!defined('MCRYPT_MODE_CBC')) define('MCRYPT_MODE_CBC', 0);
+        if (!defined('MCRYPT_RIJNDAEL_256')) define('MCRYPT_RIJNDAEL_256', 0);
+
         return array(
             // Application
             'mode' => 'development',
@@ -351,8 +354,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Application Modes
-    *******************************************************************************/
+     * Application Modes
+     *******************************************************************************/
 
     /**
      * Get application mode
@@ -388,8 +391,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Logging
-    *******************************************************************************/
+     * Logging
+     *******************************************************************************/
 
     /**
      * Get application log
@@ -401,8 +404,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Routing
-    *******************************************************************************/
+     * Routing
+     *******************************************************************************/
 
     /**
      * Add GET|POST|PUT|PATCH|DELETE route
@@ -434,6 +437,7 @@ class Slim
      * @param   array (See notes above)
      * @return  \Slim\Route
      */
+
     protected function mapRoute($args)
     {
         $pattern = array_shift($args);
@@ -459,6 +463,23 @@ class Slim
         return $this->mapRoute($args);
     }
 
+    protected $currentGroupPattern;
+    protected $processedUrl;
+    public function verifyRoute($pattern) {
+        $pattern = $this->currentGroupPattern.$pattern;
+
+        if (!$this->processedUrl) $this->processedUrl = $this->request->getResourceUri();
+
+        $url = $this->processedUrl;
+        $beginningURL = explode(':', $pattern);
+        $beginningURL = $beginningURL[0];
+        if (!fnmatch($beginningURL."*", $url)) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Add GET route
      * @see    mapRoute()
@@ -467,6 +488,8 @@ class Slim
     public function get()
     {
         $args = func_get_args();
+
+        if (!$this->verifyRoute($args[0])) return false;
 
         return $this->mapRoute($args)->via(\Slim\Http\Request::METHOD_GET, \Slim\Http\Request::METHOD_HEAD);
     }
@@ -480,6 +503,8 @@ class Slim
     {
         $args = func_get_args();
 
+        if (!$this->verifyRoute($args[0])) return false;
+
         return $this->mapRoute($args)->via(\Slim\Http\Request::METHOD_POST);
     }
 
@@ -491,6 +516,8 @@ class Slim
     public function put()
     {
         $args = func_get_args();
+
+        if (!$this->verifyRoute($args[0])) return false;
 
         return $this->mapRoute($args)->via(\Slim\Http\Request::METHOD_PUT);
     }
@@ -504,6 +531,8 @@ class Slim
     {
         $args = func_get_args();
 
+        if (!$this->verifyRoute($args[0])) return false;
+
         return $this->mapRoute($args)->via(\Slim\Http\Request::METHOD_PATCH);
     }
 
@@ -516,6 +545,8 @@ class Slim
     {
         $args = func_get_args();
 
+        if (!$this->verifyRoute($args[0])) return false;
+
         return $this->mapRoute($args)->via(\Slim\Http\Request::METHOD_DELETE);
     }
 
@@ -527,6 +558,8 @@ class Slim
     public function options()
     {
         $args = func_get_args();
+
+        if (!$this->verifyRoute($args[0])) return false;
 
         return $this->mapRoute($args)->via(\Slim\Http\Request::METHOD_OPTIONS);
     }
@@ -544,13 +577,31 @@ class Slim
     public function group()
     {
         $args = func_get_args();
+
+        if (!$this->verifyRoute($args[0])) return false;
+
         $pattern = array_shift($args);
         $callable = array_pop($args);
         $this->router->pushGroup($pattern, $args);
+
+        $groupPattern = '';
+        foreach($this->router->routeGroups as $group) {
+            $k = key($group);
+            $groupPattern .= $k;
+        }
+        $this->currentGroupPattern = $groupPattern;
+
         if (is_callable($callable)) {
             call_user_func($callable);
         }
         $this->router->popGroup();
+
+        $groupPattern = '';
+        foreach($this->router->routeGroups as $group) {
+            $k = key($group);
+            $groupPattern .= $k;
+        }
+        $this->currentGroupPattern = $groupPattern;
     }
 
     /*
@@ -660,8 +711,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Application Accessors
-    *******************************************************************************/
+     * Application Accessors
+     *******************************************************************************/
 
     /**
      * Get a reference to the Environment object
@@ -731,8 +782,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Rendering
-    *******************************************************************************/
+     * Rendering
+     *******************************************************************************/
 
     /**
      * Render a template
@@ -756,8 +807,8 @@ class Slim
     }
 
     /********************************************************************************
-    * HTTP Caching
-    *******************************************************************************/
+     * HTTP Caching
+     *******************************************************************************/
 
     /**
      * Set Last-Modified HTTP Response Header
@@ -845,8 +896,8 @@ class Slim
     }
 
     /********************************************************************************
-    * HTTP Cookies
-    *******************************************************************************/
+     * HTTP Cookies
+     *******************************************************************************/
 
     /**
      * Set HTTP cookie to be sent with the HTTP response
@@ -979,8 +1030,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Helper Methods
-    *******************************************************************************/
+     * Helper Methods
+     *******************************************************************************/
 
     /**
      * Get the absolute path to this Slim application's root directory
@@ -1116,8 +1167,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Flash Messages
-    *******************************************************************************/
+     * Flash Messages
+     *******************************************************************************/
 
     /**
      * Set flash message for subsequent request
@@ -1164,8 +1215,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Hooks
-    *******************************************************************************/
+     * Hooks
+     *******************************************************************************/
 
     /**
      * Assign hook
@@ -1253,8 +1304,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Middleware
-    *******************************************************************************/
+     * Middleware
+     *******************************************************************************/
 
     /**
      * Add middleware
@@ -1276,8 +1327,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Runner
-    *******************************************************************************/
+     * Runner
+     *******************************************************************************/
 
     /**
      * Run
@@ -1384,8 +1435,8 @@ class Slim
     }
 
     /********************************************************************************
-    * Error Handling and Debugging
-    *******************************************************************************/
+     * Error Handling and Debugging
+     *******************************************************************************/
 
     /**
      * Convert errors into ErrorException objects

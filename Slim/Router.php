@@ -66,7 +66,7 @@ class Router
     /**
      * @var array Array containing all route groups
      */
-    protected $routeGroups;
+    public $routeGroups;
 
     /**
      * Constructor
