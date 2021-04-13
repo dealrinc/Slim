@@ -172,6 +172,16 @@ class Route
                 }
                 return call_user_func_array(array($obj, $method), func_get_args());
             };
+        } else if(is_array($callable)) {
+            $class = $callable[0];
+            $method = $callable[1];
+            $callable = function() use ($class, $method) {
+                static $obj = null;
+                if ($obj === null) {
+                    $obj = new $class;
+                }
+                return call_user_func_array(array($obj, $method), func_get_args());
+            };
         }
 
         if (!is_callable($callable)) {
