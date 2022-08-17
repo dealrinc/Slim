@@ -96,6 +96,12 @@ class Route
     protected $caseSensitive;
 
     /**
+     * The original callable provided when creating the routes.
+     * @var mixed
+     */
+    public $origCallable;
+
+    /**
      * Constructor
      * @param string $pattern The URL pattern (e.g. "/books/:id")
      * @param mixed $callable Anything that returns TRUE for is_callable()
@@ -161,6 +167,8 @@ class Route
      */
     public function setCallable($callable)
     {
+        $this->origCallable = $callable;
+
         $matches = array();
         if (is_string($callable) && preg_match('!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!', $callable, $matches)) {
             $class = $matches[1];
