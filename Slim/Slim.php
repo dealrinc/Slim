@@ -465,10 +465,13 @@ class Slim
 
     protected $currentGroupPattern;
     protected $processedUrl;
-    public function verifyRoute($pattern) {
+    public function verifyRoute($pattern)
+    {
         $pattern = $this->currentGroupPattern.$pattern;
 
-        if (!$this->processedUrl) $this->processedUrl = $this->request->getResourceUri();
+        if (!$this->processedUrl) {
+            $this->processedUrl = $this->request->getResourceUri();
+        }
 
         $url = $this->processedUrl;
         $beginningURL = explode(':', $pattern);
@@ -489,7 +492,9 @@ class Slim
     {
         $args = func_get_args();
 
-        if (!$this->verifyRoute($args[0])) return false;
+        if (!$this->verifyRoute($args[0])) {
+            return false;
+        }
 
         return $this->mapRoute($args)->via(\Slim\Http\Request::METHOD_GET, \Slim\Http\Request::METHOD_HEAD);
     }
@@ -1367,6 +1372,9 @@ class Slim
 
             //Send headers
             foreach ($headers as $name => $value) {
+                if (!$value) {
+                    continue;
+                }
                 $hValues = explode("\n", $value);
                 foreach ($hValues as $hVal) {
                     header("$name: $hVal", false);
